@@ -27,7 +27,7 @@ public class GraphImporter {
     }
 
     private static List<Integer> numericalRow(final String row) {
-        return Arrays.stream(row.trim().split(" "))
+        return Arrays.stream(row.trim().replaceAll("\\s+", " ").split(" "))
                 .filter(StringUtils::isNotBlank)
                 .map(Integer::parseInt)
                 .collect(Collectors.toList());

@@ -27,10 +27,10 @@ import static java.util.stream.Collectors.toList;
 
 @Slf4j
 public class Solver {
-    public static final int PARALLEL_SOLVERS = 6;
+    public static final int PARALLEL_SOLVERS = 1;
 
     public static void main(String[] args) throws Exception {
-        final AbstractGraph graph = GraphImporter.fromFullMatrix("examples/bays29.txt");
+        final AbstractGraph graph = GraphImporter.fromFullMatrix("examples/cities_distance.txt");
         final TspEvoHelper tspEvoHelper = TspEvoHelper.with(graph);
 
         final List<CompletableFuture<Phenotype<City, Double>>> solutionFutures = IntStream.range(0, PARALLEL_SOLVERS)
