@@ -1,6 +1,7 @@
 package org.pszt.tsp.domain;
 
 import lombok.NonNull;
+import org.pszt.evo.EvoUtils;
 import org.pszt.evo.PopulationProvider;
 import org.pszt.evo.core.domain.Chromosome;
 import org.pszt.evo.core.domain.Gene;
@@ -17,24 +18,26 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
-public class RandomTspPopulationProvider<T extends Gene<?, T>, C extends Comparable<? super C>> implements PopulationProvider<T, C> {
+public class RandomTspPopulationProvider<T extends Gene<?, T>, C extends Comparable<? super C>> extends PopulationProvider<T, C> {
     private final Random random = new Random();
+    private final EvoUtils evoUtils = new EvoUtils();
 
-    private final AbstractGraph graph;
     private final TspFitnessEvaluator tspFitnessEvaluator;
     private final Function<Chromosome<City>, Double> fitnessFunction;
 
     public RandomTspPopulationProvider(@NonNull AbstractGraph graph) {
-        this.graph = graph;
+        this(graph, graph.getV());
+    }
+
+    public RandomTspPopulationProvider(@NonNull AbstractGraph graph, final int N) {
+        super(graph, N);
         this.tspFitnessEvaluator = new TspFitnessEvaluator(graph);
         this.fitnessFunction = tspFitnessEvaluator::evaluate;
     }
 
     @Override
     public Population<T, C> provide(final int size) {
-        final List<City> initialTspTour = IntStream.range(0, graph.getV())
-                .mapToObj(City::new)
-                .collect(Collectors.toList());
+        final List<City> initialTspTour = generateInitialTspTour();
 
         final Population<T, C> gPopulation = new Population<>();
 
@@ -44,5 +47,13 @@ public class RandomTspPopulationProvider<T extends Gene<?, T>, C extends Compara
         });
 
         return gPopulation;
+    }
+
+    private List<City> generateInitialTspTour() {
+        if (N == graph.getV()) {
+            return IntStream.range(0, graph.getV()).mapToObj(City::new).collect(Collectors.toList());
+        }
+
+        return evoUtils.generateUniqueIndices(0, graph.getV(), N).stream().map(City::new).collect(Collectors.toList());
     }
 }

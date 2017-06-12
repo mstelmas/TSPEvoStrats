@@ -1,9 +1,6 @@
 package org.pszt.evo;
 
-import lombok.AccessLevel;
-import lombok.AllArgsConstructor;
-import lombok.NoArgsConstructor;
-import lombok.NonNull;
+import lombok.*;
 import org.pszt.evo.core.EvolutionParams;
 import org.pszt.evo.core.EvolutionStrategy;
 import org.pszt.evo.core.EvolutionType;
@@ -11,6 +8,9 @@ import org.pszt.evo.core.domain.Gene;
 import org.pszt.evo.core.domain.Phenotype;
 import org.pszt.evo.core.domain.Population;
 import org.pszt.evo.core.factories.EvolutionStrategyFactory;
+import org.pszt.evo.core.listeners.CompletionListener;
+import org.pszt.evo.core.listeners.EvolutionListener;
+import org.pszt.evo.core.listeners.InitializationListener;
 import org.pszt.evo.crossing.Crosser;
 import org.pszt.evo.crossing.ModifiedCrossOver;
 import org.pszt.evo.mutation.Mutator;
@@ -20,9 +20,14 @@ import org.pszt.evo.selection.Selector;
 import org.pszt.evo.succession.GenerationSuccession;
 import org.pszt.evo.succession.SuccessionStrategy;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.function.BiConsumer;
+import java.util.function.Consumer;
 import java.util.function.Supplier;
 
-@AllArgsConstructor
+@Getter
+@Setter
 public final class EvoSolver<T extends Gene<?, T>, C extends Number & Comparable<? super C>> {
     public static final double DEFAULT_MUTATION_RATE = 0.1;
     public static final double DEFAULT_CROSSING_RATE = 0.35;
@@ -34,18 +39,64 @@ public final class EvoSolver<T extends Gene<?, T>, C extends Number & Comparable
     private final EvolutionType evolutionType;
     private final EvolutionParams<T, C> evolutionParams;
 
-    private final PopulationProvider<T, C> populationGenerator;
+    private PopulationProvider<T, C> populationGenerator;
     private final EvolutionStrategy<T, C> evolutionStrategy;
 
+    private final List<EvolutionListener> evolutionListeners = new ArrayList<>();
+    private final List<InitializationListener> initializationListeners = new ArrayList<>();
+    private final List<CompletionListener> completionListeners = new ArrayList<>();
+
+    public EvoSolver(final int populationSize, final int evolutionIterations, EvolutionType evolutionType, EvolutionParams<T, C> evolutionParams, PopulationProvider<T, C> populationGenerator, EvolutionStrategy<T, C> evolutionStrategy) {
+        this.populationSize = populationSize;
+        this.evolutionIterations = evolutionIterations;
+        this.evolutionType = evolutionType;
+        this.evolutionParams = evolutionParams;
+        this.populationGenerator = populationGenerator;
+        this.evolutionStrategy = evolutionStrategy;
+    }
 
     public Phenotype<T, C> solve() {
+
+        onInitialization.accept(this);
+
         Population<T, C> currentPopulation = populationGenerator.provide(populationSize);
 
         for (int i = 0; i < evolutionIterations; i++) {
+
+            onBeforeEvolutionListeners.accept(i, currentPopulation);
+
             currentPopulation = evolutionStrategy.evolve(currentPopulation);
+
+            onAfterEvolutionListeners.accept(i, currentPopulation);
         }
 
+        onCompletion.accept(currentPopulation);
+
         return currentPopulation.getFittest();
+    }
+
+    private BiConsumer<Integer, Population<T, C>> onBeforeEvolutionListeners = (i, population) ->
+            evolutionListeners.forEach(evolutionListener -> evolutionListener.onBeforeEvolution(i, population));
+
+    private BiConsumer<Integer, Population<T, C>> onAfterEvolutionListeners = (i, population) ->
+            evolutionListeners.forEach(evolutionListener -> evolutionListener.onAfterEvolution(i, population));
+
+    private Consumer<EvoSolver> onInitialization = evoSolver ->
+            initializationListeners.forEach(initializationListener -> initializationListener.onInit(evoSolver));
+
+    private Consumer<Population<T, C>> onCompletion = population ->
+            completionListeners.forEach(completionListener -> completionListener.onFinish(population));
+
+    public void registerEvolutionListener(@NonNull final EvolutionListener evolutionListener) {
+        evolutionListeners.add(evolutionListener);
+    }
+
+    public void registerInitializationListener(@NonNull final InitializationListener initializationListener) {
+        initializationListeners.add(initializationListener);
+    }
+
+    public void registerCompletionListener(@NonNull final CompletionListener completionListener) {
+        completionListeners.add(completionListener);
     }
 
     public static <T extends Gene<?, T>, C extends Number & Comparable<? super C>> builder<T, C> builder() {
@@ -122,8 +173,6 @@ public final class EvoSolver<T extends Gene<?, T>, C extends Number & Comparable
         }
 
         public EvoSolver<T, C> build() {
-            validateConstraints();
-
             final EvolutionParams<T, C> evolutionParams = evolutionParamsSupplier.get();
 
             return new EvoSolver<>(
@@ -134,12 +183,6 @@ public final class EvoSolver<T extends Gene<?, T>, C extends Number & Comparable
                     populationGenerator,
                     EvolutionStrategyFactory.build(evolutionType, evolutionParams)
             );
-        }
-
-        private void validateConstraints() {
-            if (populationGenerator == null) {
-                throw new IllegalStateException("Initial population generator has not been provided!");
-            }
         }
 
         private Supplier<EvolutionParams<T, C>> evolutionParamsSupplier = () -> {

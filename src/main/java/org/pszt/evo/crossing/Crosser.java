@@ -1,6 +1,8 @@
 package org.pszt.evo.crossing;
 
-import lombok.RequiredArgsConstructor;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.Setter;
 import org.apache.commons.lang3.tuple.Pair;
 import org.pszt.evo.core.domain.Chromosome;
 import org.pszt.evo.core.domain.Gene;
@@ -12,10 +14,12 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.concurrent.ThreadLocalRandom;
 
-@RequiredArgsConstructor
+@Setter
+@Getter
+@AllArgsConstructor
 public class Crosser<G extends Gene<?, G>, C extends Comparable<? super C>> {
-    private final CrossOverStrategy<G> crossOverStrategy;
-    private final double crossRate;
+    private CrossOverStrategy<G> crossOverStrategy;
+    private double crossRate;
 
     public Population<G, C> cross(final Population<G, C> population, final long evolutionIteration) {
         final Population<G, C> newPopulation = population.copy();

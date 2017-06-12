@@ -1,11 +1,9 @@
 package org.pszt.tsp.domain;
 
-import lombok.AccessLevel;
-import lombok.NonNull;
-import lombok.RequiredArgsConstructor;
-import lombok.ToString;
+import lombok.*;
 import org.pszt.evo.core.domain.Gene;
 
+@EqualsAndHashCode
 @ToString
 @RequiredArgsConstructor(access = AccessLevel.PACKAGE)
 public class City implements Gene<Integer, City> {

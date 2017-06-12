@@ -7,7 +7,12 @@ import org.pszt.graph.Edge;
 import org.pszt.tsp.domain.City;
 import org.pszt.tsp.exceptions.InvalidTspTourException;
 
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Paths;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.IntStream;
 
 public class TspEvoHelper {
@@ -51,6 +56,17 @@ public class TspEvoHelper {
         checkForMinCycleLength(tspTour);
         checkForAcyclicTour(tspTour);
         checkForBrokenTour(tspTour);
+    }
+
+    public Map<City, String> loadCityStringMappings(final String filename) throws IOException {
+        final List<String> lines = Files.readAllLines(Paths.get(filename));
+
+        final Map<City, String> mapping = new HashMap<>();
+        for (int i = 0; i < lines.size(); i++) {
+            mapping.put(City.of(i), lines.get(i));
+        }
+
+        return mapping;
     }
 
     private static void checkForBrokenTour(final List<Edge> tspTour) {
