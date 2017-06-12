@@ -43,7 +43,6 @@ public final class EvoSolver<T extends Gene<?, T>, C extends Number & Comparable
 
         for (int i = 0; i < evolutionIterations; i++) {
             currentPopulation = evolutionStrategy.evolve(currentPopulation);
-//            evoSolverResults.getEvolutionsAggregator().addEvolutionAtStage(new EvolutionStage<>(i, currentPopulation, evolvedPopulation));
         }
 
         return currentPopulation.getFittest();
@@ -64,7 +63,7 @@ public final class EvoSolver<T extends Gene<?, T>, C extends Number & Comparable
         private PopulationProvider<T, C> populationGenerator = null;
         private EvolutionType evolutionType = EvolutionType.GENETIC_ALGORITHM;
         private Integer mi = null;
-        private Integer nu = null;
+        private Integer lambda = null;
 
         public builder<T, C> withPopulationSize(final int populationSize) {
             if (populationSize <= 0) {
@@ -117,8 +116,8 @@ public final class EvoSolver<T extends Gene<?, T>, C extends Number & Comparable
             return this;
         }
 
-        public builder<T, C> withNu(@NonNull final Integer nu) {
-            this.nu = nu;
+        public builder<T, C> withLambda(@NonNull final Integer lambda) {
+            this.lambda = lambda;
             return this;
         }
 
@@ -150,7 +149,7 @@ public final class EvoSolver<T extends Gene<?, T>, C extends Number & Comparable
             evolutionParams.setSelector(selector);
             evolutionParams.setSuccessionStrategy(successionStrategy);
             evolutionParams.setMi(mi);
-            evolutionParams.setNu(nu);
+            evolutionParams.setLambda(lambda);
             return evolutionParams;
         };
     }

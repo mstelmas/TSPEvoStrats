@@ -18,4 +18,5 @@ public interface PopulationStrategy<T extends Gene<?, T>, C extends Comparable<?
     int size();
 
     Population<T, C> newInstance(final List<Phenotype<T, C>> phenotypes);
+    Population<T, C> joinWith(final Population<T, C> population);
 }

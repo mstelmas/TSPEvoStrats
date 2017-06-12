@@ -62,6 +62,13 @@ public class Population<T extends Gene<?, T>, C extends Comparable<? super C>> i
     }
 
     @Override
+    public Population<T, C> joinWith(final Population<T, C> population) {
+        final Population<T, C> populationCopy = copy();
+        populationCopy.getPopulation().addAll(population.getPopulation());
+        return populationCopy;
+    }
+
+    @Override
     public Population<T, C> copy() {
         return new Population<>(population);
     }

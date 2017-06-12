@@ -9,8 +9,8 @@ import org.pszt.evo.succession.SuccessionStrategy;
 
 @Data
 public class EvolutionParams<T extends Gene<?, T>, C extends Number & Comparable<? super C>> {
-    private Integer nu;
     private Integer mi;
+    private Integer lambda;
     private Mutator<T, C> mutator;
     private Crosser<T, C> crosser;
     private Selector<T, C> selector;

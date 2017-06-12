@@ -11,4 +11,8 @@ public class Selector<G extends Gene<?, G>, C extends Number & Comparable<? supe
     public Population<G, C> select(final Population<G, C> population) {
         return selectionStrategy.select(population);
     }
+
+    public Population<G, C> select(final Population<G, C> population, final int size) {
+        return selectionStrategy.select(population, size);
+    }
 }

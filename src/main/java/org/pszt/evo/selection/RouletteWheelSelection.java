@@ -14,10 +14,15 @@ public class RouletteWheelSelection<T extends Gene<?, T>, C extends Number & Com
 
     @Override
     public Population<T, C> select(final Population<T, C> population) {
+        return select(population, population.size());
+    }
+
+    @Override
+    public Population<T, C> select(final Population<T, C> population, final int size) {
         final Population<T, C> copiedPopulation = population.copy();
         final double cumulativeFitnessTable[] = buildCumulativeFitnessTable(population);
 
-        final List<Phenotype<T, C>> offspringPopulation = IntStream.range(0, population.size())
+        final List<Phenotype<T, C>> offspringPopulation = IntStream.range(0, size)
                 .mapToObj(i -> rouletteWheelPick(copiedPopulation, cumulativeFitnessTable))
                 .collect(Collectors.toList());
 
